@@ -3,93 +3,55 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fecal Media</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💩</text></svg>">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#4CAF50">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💩</text></svg>">
     
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            background-color: #f4f4f9; 
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 90vh; 
-            margin: 0;
+            text-align: center; padding: 20px; background-color: #f4f4f9; color: #333;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 90vh; margin: 0;
         }
 
         h2 { margin-bottom: 20px; color: #444; }
 
-        /* The Big Circle Button */
         .btn { 
             background: linear-gradient(145deg, #4CAF50, #45a049);
-            color: white; 
-            padding: 0;
-            width: 220px;
-            height: 220px;
-            border: none; 
-            border-radius: 50%; 
-            cursor: pointer; 
+            color: white; padding: 0; width: 220px; height: 220px;
+            border: none; border-radius: 50%; cursor: pointer; 
             box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
+            transition: all 0.2s ease; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; margin-bottom: 30px;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .btn:active { 
-            transform: scale(0.95); 
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3); 
-        }
-
+        .btn:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3); }
         .btn-text { font-size: 24px; font-weight: bold; margin-top: 10px; }
         .btn-icon { font-size: 50px; }
 
-        /* Notes Input */
-        textarea { 
-            width: 85%; 
-            max-width: 350px; 
-            padding: 15px; 
-            border-radius: 15px; 
-            border: 1px solid #ddd;
-            font-size: 16px;
-            margin-bottom: 20px;
-            background: white;
-            resize: none;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
-            font-family: inherit;
+        /* General Input Style */
+        .input-field { 
+            width: 85%; max-width: 350px; padding: 15px; 
+            border-radius: 15px; border: 1px solid #ddd;
+            font-size: 16px; margin-bottom: 15px; background: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); font-family: inherit;
         }
+        
+        .input-field:focus { outline: 2px solid #4CAF50; border-color: transparent; }
 
-        textarea:focus { outline: 2px solid #4CAF50; border-color: transparent; }
+        /* Specific tweak for the ID box to make it look distinct */
+        #userId { text-align: center; font-weight: bold; letter-spacing: 1px; }
 
-        #status { 
-            margin-top: 20px; 
-            font-size: 1em; 
-            color: #666; 
-            min-height: 24px;
-            font-weight: 500;
-        }
+        #status { margin-top: 20px; font-size: 1em; color: #666; min-height: 24px; font-weight: 500; }
 
-        /* Loading Spinner */
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4CAF50;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            display: none;
-            margin: 0 auto 15px auto;
+            border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50;
+            border-radius: 50%; width: 30px; height: 30px;
+            animation: spin 1s linear infinite; display: none; margin: 0 auto 15px auto;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -97,7 +59,9 @@
 
     <h2>💩 Drop Log</h2>
     
-    <textarea id="notes" rows="3" placeholder="Notes (Cleanliness, WiFi, etc.)"></textarea>
+    <input type="text" id="userId" class="input-field" placeholder="User ID (Name)" />
+
+    <textarea id="notes" class="input-field" rows="3" placeholder="Notes (Cleanliness, etc.)"></textarea>
     
     <button class="btn" id="mainBtn" onclick="processDrop()">
         <span class="btn-icon">📍</span>
@@ -107,38 +71,43 @@
     <div class="loader" id="loader"></div>
     <div id="status"></div>
 
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:block; border:1px solid red; width:100%; height:300px;"></iframe>
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 
     <script>
+        // Check if ID was saved previously so they don't have to type it every time
+        window.onload = function() {
+            const savedId = localStorage.getItem('poopApp_userId');
+            if (savedId) document.getElementById('userId').value = savedId;
+        }
+
         function processDrop() {
             const btn = document.getElementById('mainBtn');
             const status = document.getElementById('status');
             const loader = document.getElementById('loader');
             const notes = document.getElementById('notes').value;
+            const userId = document.getElementById('userId').value;
             
-            // 1. Check GPS capability
+            // Save the ID for next time
+            if(userId) localStorage.setItem('poopApp_userId', userId);
+
             if (!navigator.geolocation) {
                 status.innerHTML = "❌ Geolocation not supported.";
                 return;
             }
 
-            // 2. Start Loading UI
             status.innerHTML = "Acquiring GPS...";
             loader.style.display = "block";
             btn.style.opacity = "0.7";
             btn.disabled = true;
 
-            // 3. Get Coordinates
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const lat = position.coords.latitude;
                     const long = position.coords.longitude;
-                    
                     status.innerHTML = "Sending to database...";
-                    sendToGoogle(lat, long, notes);
+                    sendToGoogle(lat, long, notes, userId);
                 }, 
                 (error) => {
-                    // Error Handling
                     loader.style.display = "none";
                     btn.disabled = false;
                     btn.style.opacity = "1";
@@ -148,33 +117,37 @@
             );
         }
 
-        function sendToGoogle(lat, long, notes) {
+        function sendToGoogle(lat, long, notes, userId) {
+            // Your Form URL
             const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSc_zQkIm402TtiYtaJ4TAy1x_yAx_-OPOSJM64W6zUap7VTDw/formResponse";
             
-            // Create a virtual form in JavaScript to submit data
             const form = document.createElement('form');
             form.action = formUrl;
             form.method = 'POST';
-            form.target = 'hidden_iframe'; // This keeps us on the same page!
+            form.target = 'hidden_iframe';
             form.style.display = 'none';
 
-            // Field: Coordinates (Your ID: 48565846)
+            // 1. Coordinates Field
             const inputLat = document.createElement('input');
             inputLat.name = 'entry.48565846';
             inputLat.value = `${lat},${long}`;
             form.appendChild(inputLat);
 
-            // Field: Notes (Your ID: 1337440798)
+            // 2. Notes Field
             const inputNotes = document.createElement('input');
             inputNotes.name = 'entry.1337440798';
             inputNotes.value = notes;
             form.appendChild(inputNotes);
 
+            // 3. User ID Field (Updated with your new ID)
+            const inputUser = document.createElement('input');
+            inputUser.name = 'entry.1803584933'; 
+            inputUser.value = userId;
+            form.appendChild(inputUser);
+
             document.body.appendChild(form);
             form.submit();
 
-            // 4. Success UI
-            // Since the iframe is hidden, we assume success after a short delay
             setTimeout(() => {
                 const loader = document.getElementById('loader');
                 const status = document.getElementById('status');
@@ -182,12 +155,9 @@
 
                 loader.style.display = "none";
                 status.innerHTML = "✅ <b>Saved!</b>";
-                
-                // Visual Success Feedback on Button
                 btn.style.background = "#2196F3"; 
                 btn.innerHTML = "<span class='btn-icon'>👍</span><span class='btn-text'>DONE</span>";
 
-                // Reset everything after 3 seconds
                 setTimeout(() => {
                     btn.disabled = false;
                     btn.style.opacity = "1";
@@ -197,7 +167,7 @@
                     status.innerHTML = "";
                 }, 3000);
 
-            }, 1200); // 1.2 second fake delay to let the form submit
+            }, 1200);
         }
     </script>
 </body>
